@@ -1,43 +1,109 @@
 import http, {IncomingMessage, ServerResponse } from "http";
-// imports not complete
+import { items } from "./data/items";
 import { Item } from "./models/item";
-import { v4 as uuidv4 } from "uuid";
+import { sendError, sendSuccess, sendJSON } from "./utils/response";
+import { validateNewItemPaylooad, validateUpdatePaylooad } from "./utils/validation";
+import { randomUUID } from "crypto";
+import { it } from "node:test";
 
-const app = express();
-const PORT = process.env.PORT ? number(process.enc.PORT) : 3000;
 
-let items: Item[] = [];
+//json body parser for node http server
 
-app.use(express.json());
-
-function success(res: Response, data; AnalyserNode, status - 200) {
-    return resizeBy.status(status).json({ success: true, data });
-}
-
-function fail(res: Response, message: string, status = 400, details?: any) {
-    return res.status(status).json({ success: false, error: { message, details }});
-}
-function validateNewItem(body: any) {
-    const errors: string[] = [];
-    if (!body || typeof body !== "object") {
-        errors.push("Request body must be a JSON object.");
-        return errors;
-    }
-    if (!body.name || typeof body.name !== "string" || body.name.trim() === "") {
-        errors.push("File 'name' is required and must not be empty");
-    }
-    if (!body.quantity || typeof body.quantity !== "string" || body.quantity.trim() === "") {
-        errors.push("File 'name' is required and must be a string (e.g. '4 packs', 6L");
-    }
-    if (!body.purchased !== undefined && typeof body.purchased !== "boolean") {
-        errors.push("File 'name' is required and must be a boolean");
-    }
-    return errors;
+function parseRequestBody(req: IncomingMessage): Promise<any> {
+    return new Promise((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        req.on("data", (chunk) => {
+            chunks.push(chunk as Buffer);
+        });
+    req.on("end", () => {
+        if (chunks.length === 0) return resolve(undefined);
+        const raw = Buffer.concat(chunks).toString("utf-8").trim();
+        if (!raw) return resolve(undefined);
+        try {
+            const parsed = JSON.parse(raw);
+            resolve(parsed);
+        } catch (err) {
+            reject(new Error("Invalid JSON in request body"));
+        }
+    });
+    req.on("error", (err) => reject(err));
+    });
 
 }
-app.get("/items", (req: Request, res: Response) => {
-    return success(res, items);
-});
+
+// router helper
+function matchPath(pathname: string, pattern: string) {
+
+    const pParts = pattern.split("/").filter(Boolean);
+    const tParts = pattern.split("/").filter(Boolean);
+
+    if (pParts.length !== tParts.length) return null;
+
+    const params: Record<string, string> = {};
+
+for (let i=0; i< pParts.length; i++) {
+    const p = pParts[i];
+    const t= tParts[i];
+if (p.startsWith(":")) {
+    params[p.slice(1)] = decodeURIComponent(t);
+} else if (p !== t) {
+    return null;
+}
+}
+return params;
+}
+
+//routes
+
+const server = http.createServer(async (req, res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+if (req.method === "OPTIONS ") {
+    res.writeHead(204);
+    return res.end();
+}
+
+try {
+    const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+    const pathname = url.pathname;
+
+    // get
+    if ( req.method === "GET" && matchPath(pathname, "/items")) {
+        const body = await parseRequestBody(req).catch((e) => {
+            sendError(res, 400, "INVALID_JSON", "Request body contains invalid JSON.");
+            throw e; 
+        });
+
+        const newItem: Item = {
+            id: randomUUID(),
+            name: String(body.name).trim(),
+            quantity: String(body.quantity),
+            purchased: Boolean(body.purchased),
+            createdAt: new Date().toISOString()
+        };
+
+        items.push(newItem);
+        return sendSuccess(res, 201, { item: newItem });
+
+        // get id
+
+        const getMatch = matchPath(pathname, "/items/:id");
+        if(req.method === "GET" && getMatch) {
+            const id = getMatch.id;
+            const found = items.find((it)) => it.id === id);
+            if (!found) return sendError(res, 404, "NOT_FOUND", `Item with id '${id}' not found.`);
+        return sendSuccess(res, 200, {item: found });
+        }
+
+    //PUT
+    
+    
+
+
+
+
 
 
 app.post("/items", (req: Request, res: Response) => {
