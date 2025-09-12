@@ -158,79 +158,9 @@ try {
     sendError(res, 500, "INTERNAL_ERROR", "Something went wrong on the server.");
    }
 }
-}
-    
-    
-
-
-
-
-
-
-app.post("/items", (req: Request, res: Response) => {
-    const errors = validateNewItem(req.body);
-    if (errors.length > 0) return fail(res, "Validation error", 400, errors);
-
-    const { name, quantity, purchased } = req.body;
-    const now = new Date().toISOString();
-    const newItem: Item = {
-        id: uuidv4(),
-        name: name.trim(),
-        quantity: quantity.trim(),
-        purchased: purchased === true,
-        createdAt: now,
-        updatedAt: now
-
-    };
-
-    items.push(newItem);
-    return success(res, newItem, 201);
 });
 
-
-
-app.get("/items/:id", (req: Request, res: Response) => {
-    const id = req.params.id;
-    const item = items.find((it) => it.id === id);
-    if (!item) return fail(res, `Item with id '${id}' not found `, 404);
-    return success(res, item);
-
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
+server.listen(PORT, () => {
+    console.log(`Shopping List API running at http://localhost:${PORT}`);
 });
-
-
-
-app.put("/items/:id", (req: Request, res: Response) => {
-    const id = req.params.id;
-    const itemIndex = items.findIndex((it) => it.id === id);
-    if (itemIndex === -1) return fail(res, `Item with id '${id}' not found`, 404);
-
-    const allowedFields = ["name", "quantity", "purchased"];
-    const unknownFields = Object.keys(body).filter((k) => !allowedFields.include(k));
-    if (unknownFields.length > 0 ) {
-        return fail(res, "Unknown fields provided.", 400, unknownFields);
-    }
-
-    if (body.name !== undefined) {
-        if(typeof body.name !== "string " || body.name trim() === "") {
-            return fail(res, "If provided, 'name' must be not empty", 400);
-        }
-        items[itemIndex].name = body.name.trim();
-
-    }
-        if (body.quantity !== undefined) {
-            if (typeof body.quantity !== "string" || body.quantity.trim() === "") {
-                return fail(res, "If provided, 'quantity' must not be empty", 400);
-            }
-            items[itemIndex].quantity = body.quantity.trim();
-            }
-            
-    if ( body.purchased !== undefined) {
-        if (typeof body.purchased !== "boolean") {
-            return fail(res, "If provided, 'purchased must be a boolean.", 400);
-        }
-        items[itemIndex].purchased = body.purchased;
-    }
-    items[itemIndex].updatedAt = new Date().toISOString();
-
-    return success(res, items[itemIndex]);
-  });
