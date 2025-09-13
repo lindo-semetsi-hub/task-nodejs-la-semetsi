@@ -1,6 +1,7 @@
 {
 "name": "shopping-list-api",
 "version": "1.0.0",
+"type": "module",
 "scripts": {
 "build": "tsc",
 "start": "npm run dev",
@@ -11,6 +12,6 @@
 "devDependencies": {
 "ts-node": "^10.9.1",
 "typescript": "^5.0.0",
-"@types/node": "^20.4.2"
+"@types/node": "^20.0.0"
 }
 }
