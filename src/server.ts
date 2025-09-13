@@ -102,7 +102,7 @@ try {
 
         const getMatch = matchPath(pathname, "/items/:id");
         if(req.method === "GET" && getMatch) {
-            const id = getMatch.id;
+            const id = getMatch!.id;
             const found = items.find((it) => it.id === id);
             if (!found) return sendError(res, 404, "NOT_FOUND", `Item with id '${id}' not found.`);
         return sendSuccess(res, 200, {item: found });
@@ -110,7 +110,7 @@ try {
 
     //put
     if (req.method === "PUT" && getMatch) {
-        const id = getMatch.id;
+        const id = getMatch!.id;
         const foundIndex = items.findIndex((it) => it.id === id);
         if (foundIndex === -1) return sendError(res, 404, "NOT_FOUND", `Item with id '${id}' not found.`);
 
@@ -139,7 +139,7 @@ try {
     // delete 
 
     if (req.method === "DELETE" && getMatch) {
-        const id = getMatch.id;
+        const id = getMatch!.id;
         const idx = items.findIndex((it) => it.id ===id);
         if (idx === -1) return sendError(res, 404, "NOT_FOUND", `Item with id '${id}' not found`);
         items.splice(idx, 1);
