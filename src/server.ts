@@ -98,7 +98,8 @@ try {
         items.push(newItem);
         return sendSuccess(res, 201, { item: newItem });
 
-        // get id
+     }
+      // get id
 
         const getMatch = matchPath(pathname, "/items/:id");
         if(req.method === "GET" && getMatch) {
