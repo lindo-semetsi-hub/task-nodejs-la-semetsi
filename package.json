@@ -5,7 +5,7 @@
 "scripts": {
 "build": "tsc",
 "start": "npm run dev",
-"dev": "ts-node server.ts"
+"dev": "ts-node src/server.ts"
 },
 
 "dependencies": {},
